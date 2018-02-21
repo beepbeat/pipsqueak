@@ -205,24 +205,10 @@ class WebsocketAPIHandler21(BaseWebsocketAPIHandler):
         return await self.request(request)
 
     def construct_request(self, endpoint: (str, str), root_params: {}, meta_params: {}) -> str:
-        ret_str = mp_str = rp_str = ""
-        for (k, v) in root_params:
-            rp_str += json.dumps({k:v}, separators=':')
-        for (k, v) in meta_params:
-            mp_str += json.dumps({k:v}, separators=':')
-        ret_str = json.dumps({"action": [endpoint[0], endpoint[1]]}, separators=(',', ':'))
+        """ Constructs the JSON to be passed along the WebSocket channel from the given parameters
+            root_params has the power to overwrite the endpoint!
+        """
+        json_dict = {"action": [endpoint[0], endpoint[1]], "meta": meta_params}
+        json_dict = {**json_dict, **root_params}
+        return json.dumps(json_dict)
 
-        tmp_list = list(ret_str)
-        tmp_list.pop()
-        ret_str += "".join(tmp_list)
-
-        tmp_list = list(mp_str)
-        tmp_list.pop()
-        tmp_list.pop(0)
-        ret_str += ",".join(tmp_list)
-
-        tmp_list = list(rp_str)
-        tmp_list.pop(0)
-        ret_str += ",".join(tmp_list)
-
-        return ret_str
