@@ -80,3 +80,26 @@ class APIHandler(object):
             await self._connection.send(data)
         else:
             await self._connection.send(json.dumps(data))
+
+    def construct_request(self, endpoint: (str, str), root_params: {}, meta_params: {}) -> str:
+        ret_str = mp_str = rp_str = ""
+        for (k, v) in root_params:
+            rp_str += json.dumps({k:v}, separators=':')
+        for (k, v) in meta_params:
+            mp_str += json.dumps({k:v}, separators=':')
+        ret_str = json.dumps({"action": [endpoint[0], endpoint[1]]}, separators=(',', ':'))
+
+        tmp_list = list(ret_str)
+        tmp_list.pop()
+        ret_str += "".join(tmp_list)
+
+        tmp_list = list(mp_str)
+        tmp_list.pop()
+        tmp_list.pop(0)
+        ret_str += ",".join(tmp_list)
+
+        tmp_list = list(rp_str)
+        tmp_list.pop(0)
+        ret_str += ",".join(tmp_list)
+
+        return ret_str
