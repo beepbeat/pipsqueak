@@ -128,13 +128,21 @@ class BaseWebsocketAPIHandler(object):
 
     async def _send_raw(self, data: Union[str, bytes, dict]):
         """Send raw data to the server."""
-        if not self.connected:
+        if not self._connection:
             raise APIError("Not connected to any server")
 
         if isinstance(data, str) or isinstance(data, bytes):
             await self._connection.send(data)
         else:
             await self._connection.send(json.dumps(data))
+
+    def construct_request(self, endpoint: (str, str), root_params: {}, meta_params: {}) -> str:
+        """ Constructs the JSON to be passed along the WebSocket channel from the given parameters
+            root_params has the power to overwrite the endpoint!
+        """
+        json_dict = {"action": [endpoint[0], endpoint[1]], "meta": meta_params}
+        json_dict = {**json_dict, **root_params}
+        return json.dumps(json_dict)
 
     async def request(self, data: MutableMapping[str, Any]) -> Mapping[str, Any]:
         """
