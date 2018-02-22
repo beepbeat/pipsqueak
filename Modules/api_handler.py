@@ -84,6 +84,13 @@ class APIHandler(object):
     def construct_request(self, endpoint: (str, str), root_params: {}, meta_params: {}) -> str:
         """ Constructs the JSON to be passed along the WebSocket channel from the given parameters
             root_params has the power to overwrite the endpoint!
+            Params:
+                endpoint (Tuple of str and str): Api Action to execute [example: ("rescues","search")]
+                root_params: Key-value pairs of parameters for the request, these will be processed by the server
+                meta_params: Key-value pairs of parameters that will be included in the "meta" parameter of the request. 
+                    These will not be processed by the server.
+            Returns: 
+                JSON representation of thr request that can be directly passed to send_raw()
         """
         json_dict = {"action": [endpoint[0], endpoint[1]], "meta": meta_params}
         json_dict = {**json_dict, **root_params}
