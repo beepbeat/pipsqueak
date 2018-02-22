@@ -2,6 +2,7 @@ import unittest
 import asyncio
 from aiounittest import async_test
 from Modules.api_handler import *
+import ast
 
 
 class APIHandlerTest(unittest.TestCase):
@@ -21,7 +22,10 @@ class APIHandlerTest(unittest.TestCase):
         self.assertFalse(self.handler.connected)
 
     def test_construct_request(self):
+        request = ast.literal_eval(self.handler._construct_request(("rescues", "search"), {"not": "this"}, {"key": "stuff"}))
+        request.get("meta").pop("request_id")
         self.assertEqual(
-            self.handler._construct_request(("rescues", "search"), {"not": "this"}, {"key": "stuff"}),
+            str(request).replace("'", "\""),
             "{\"action\": [\"rescues\", \"search\"], \"meta\": {\"key\": \"stuff\"}, \"not\": \"this\"}"
         )
+
