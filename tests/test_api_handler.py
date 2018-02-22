@@ -8,7 +8,7 @@ class APIHandlerTest(unittest.TestCase):
     handler : BaseWebsocketAPIHandler
 
     def setUp(self):
-        handler = BaseWebsocketAPIHandler(hostname="dev.api.fuelrats.com", tls=True)
+        self.handler = BaseWebsocketAPIHandler(hostname="dev.api.fuelrats.com", tls=True)
 
     @async_test
     async def test_connect(self):
@@ -18,12 +18,12 @@ class APIHandlerTest(unittest.TestCase):
 
     @async_test
     async def test_disconnect(self):
-        self.assertIsNotNone(self.handler.connected)
+        self.assertTrue(self.handler.connected)
         await self.handler.disconnect()
-        self.assertIsNone(self.handler.connected)
+        self.assertFalse(self.handler.connected)
 
     def test_construct_request(self):
         self.assertEqual(
-            self.handler.construct_request(("rescues", "search"), {"not":"this"}, {"key":"stuff"}),
+            self.handler.__construct_request(("rescues", "search"), {"not": "this"}, {"key": "stuff"}),
             "{\"action\": [\"rescues\", \"search\"], \"meta\": {\"key\": \"stuff\"}, \"not\": \"this\"}"
         )
