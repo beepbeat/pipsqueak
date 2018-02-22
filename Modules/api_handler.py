@@ -33,6 +33,7 @@ class APIError(Exception):
 class BaseWebsocketAPIHandler(object):
     """Partly abstract base class for API Handlers."""
     api_version: str = None
+    used_uuids: [UUID] = []
 
     def __init__(self, hostname: str, token: str=None, tls=False):
         """
@@ -139,14 +140,17 @@ class BaseWebsocketAPIHandler(object):
     def construct_request(self, endpoint: (str, str), root_params: {} = {}, meta_params: {} = {}) -> str:
         """ Constructs the JSON to be passed along the WebSocket channel from the given parameters
             root_params has the power to overwrite the endpoint!
-            Params:
-                endpoint (Tuple of str and str): Api Action to execute [example: ("rescues","search")]
+            Args:
+                endpoint (str, str): Api Action to execute [example: ("rescues","search")]
                 root_params: Key-value pairs of parameters for the request, these will be processed by the server
                 meta_params: Key-value pairs of parameters that will be included in the "meta" parameter of the request. 
                     These will not be processed by the server.
             Returns: 
                 JSON representation of thr request that can be directly passed to send_raw()
         """
+        request_id = uuid4()
+        while request_id in [*self._waiting_requests, *self._request_responses]: request_id = uuid4()
+        meta_params = {**meta_params, **{"request_id":request_id}}
         json_dict = {"action": [endpoint[0], endpoint[1]], "meta": meta_params}
         json_dict = {**json_dict, **root_params}
         return json.dumps(json_dict)
@@ -203,12 +207,3 @@ class WebsocketAPIHandler21(BaseWebsocketAPIHandler):
 
         request = {"action": ["rescues", "update"], "id": rescue.case_id, "data": rescue.json(full)}
         return await self.request(request)
-
-    def construct_request(self, endpoint: (str, str), root_params: {}, meta_params: {}) -> str:
-        """ Constructs the JSON to be passed along the WebSocket channel from the given parameters
-            root_params has the power to overwrite the endpoint!
-        """
-        json_dict = {"action": [endpoint[0], endpoint[1]], "meta": meta_params}
-        json_dict = {**json_dict, **root_params}
-        return json.dumps(json_dict)
-

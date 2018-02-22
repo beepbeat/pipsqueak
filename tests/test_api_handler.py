@@ -1,19 +1,26 @@
 import unittest
 import asyncio
+from aiounittest import async_test
 from Modules.api_handler import *
 
 
 class APIHandlerTest(unittest.TestCase):
-    handler = APIHandler(hostname="dev.api.fuelrats.com", tls=True)
+    handler : BaseWebsocketAPIHandler
 
-    def test_connect(self):
-        yield self.handler.connect()
-        self.assertIsNotNone(self.handler._connection)
+    def setUp(self):
+        handler = BaseWebsocketAPIHandler(hostname="dev.api.fuelrats.com", tls=True)
 
-    def test_disconnect(self):
-        self.assertIsNotNone(self.handler._connection)
-        yield self.handler.disconnect()
-        self.assertIsNone(self.handler._connection)
+    @async_test
+    async def test_connect(self):
+        if self.handler.connected: await self.handler.disconnect()
+        await self.handler.connect()
+        self.assertIsNotNone(self.handler.connected)
+
+    @async_test
+    async def test_disconnect(self):
+        self.assertIsNotNone(self.handler.connected)
+        await self.handler.disconnect()
+        self.assertIsNone(self.handler.connected)
 
     def test_construct_request(self):
         self.assertEqual(
