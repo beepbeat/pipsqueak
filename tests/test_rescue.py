@@ -12,7 +12,6 @@ This module is built on top of the Pydle system.
 """
 from datetime import datetime
 from unittest import TestCase
-from unittest.mock import patch, MagicMock
 
 from Modules.rat_rescue import Rescue
 
@@ -26,7 +25,8 @@ class TestRescue(TestCase):
         self.time = datetime(2017, 12, 24, 23, 59, 49)
         self.system = "firestone"
         self.case_id = "some_id"
-        self.rescue = Rescue(self.case_id, "stranded_commander", system=self.system, created_at=self.time)
+        self.rescue = Rescue(self.case_id, "stranded_commander", system=self.system, created_at=self.time,
+                             board_index=42)
 
     def test_client_property_exists(self):
         """
@@ -159,3 +159,39 @@ class TestRescue(TestCase):
         with self.rescue.change():
             pass
         self.assertNotEqual(origin, self.rescue.updated_at)
+    def test_get_board_index(self):
+        """
+        Verifies `Rescue.board_index` was set correctly during init.
+
+        Returns:
+
+        """
+        self.assertEqual(42, self.rescue.board_index)
+
+    def test_set_board_index_correctly(self):
+        """
+        Verifies `Rescue.board_index` is settable
+
+        Returns:
+        """
+        self.rescue.board_index = 24
+        self.assertEqual(24, self.rescue.board_index)
+
+    def test_set_board_index_incorrectly(self):
+        """
+        verifies attempts to set `Rescue.board_index` to things other than ints, or below zero,
+        Fail with the correct errors.
+        Returns:
+
+        """
+        bad_values_type = ["foo", [], {}]
+        bad_values_ints = [-42, -2]
+        for value in bad_values_ints:
+            with self.subTest(value=value):
+                with self.assertRaises(ValueError):
+                    self.rescue.board_index = value
+
+        for value in bad_values_type:
+            with self.subTest(value=value):
+                with self.assertRaises(TypeError):
+                    self.rescue.board_index = value
