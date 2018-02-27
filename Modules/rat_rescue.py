@@ -150,7 +150,7 @@ class Rescue(object):
 
     def __init__(self, case_id: str, client: str, system: str, created_at: datetime = None,
                  updated_at: datetime = None, unidentified_rats=None, active=True, quotes: list = None, is_open=True,
-                 epic=False, code_red=False, successful=False, title='', first_limpet=None):
+                 epic=False, code_red=False, successful=False, title='', first_limpet=None, board_index: int = None):
         """
         creates a unique rescue
 
@@ -169,6 +169,7 @@ class Rescue(object):
             successful (bool): is the case marked as a success
             title (str): name of operation, if applicable
             first_limpet (str): Id of the rat that got the first limpet
+            board_index (int): index position on the board, if any.
         """
         self._createdAt: datetime = created_at if created_at else datetime.utcnow()
         self._updatedAt: datetime = updated_at if updated_at else datetime.utcnow()
@@ -185,6 +186,39 @@ class Rescue(object):
         self._successful: bool = successful
         self._title: str = title
         self._firstLimpet: str = first_limpet
+        self._board_index = board_index
+
+    @property
+    def board_index(self) -> int or None:
+        """
+        The position on the rescue board this rescue holds, if any.
+
+        Returns:
+            int: if the board is attached to a case, otherwise None
+        """
+        return self._board_index
+
+    @board_index.setter
+    def board_index(self, value: int or None) -> None:
+        """
+        Sets the Rescue's board index
+
+        Set to None if the rescue is not attached to the board.
+
+        Args:
+            value (int or None): index position
+
+        Returns:
+            None
+        """
+        # negative board indexes should not be possible, right?
+        if isinstance(value, int) or value is None:
+            if value is None or value >= 0:
+                self._board_index = value
+            else:
+                raise ValueError("Value must be greater than or equal to zero, or None.")
+        else:
+            raise TypeError(f"expected int or None, got {type(value)}")
 
     @property
     def case_id(self) -> str:
