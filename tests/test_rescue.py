@@ -12,6 +12,7 @@ This module is built on top of the Pydle system.
 """
 from datetime import datetime
 from unittest import TestCase
+from unittest.mock import patch, MagicMock
 
 from Modules.rat_rescue import Rescue
 

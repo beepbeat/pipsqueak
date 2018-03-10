@@ -14,6 +14,8 @@ import sqlite3
 
 
 class DataBaseManager:
+    instance = None
+
     def __init__(self, file_name: str = "mecha3.db"):
         """
         Creates the master instance of the nested singleton class
@@ -21,11 +23,11 @@ class DataBaseManager:
         if not self.instance:
             self.instance = self.__DatabaseManager(file_name)
 
-    def __getattr__(self, item):
-        """
-        Redirects the getattr calls to the singleton class
-        """
-        return getattr(self.instance, item)
+#    def __getattr__(self, item):
+#        """
+#        Redirects the getattr calls to the singleton class
+#        """
+#        return getattr(self.instance, item)
 
     class __DatabaseManager:
         """
@@ -71,7 +73,8 @@ class DataBaseManager:
             for k, v in types.items():
                 type_string += f" {k} {v.upper()},"
             type_string = type_string[:-1]
-            self.connection.execute("CREATE TABLE {name} (?)".format(name=name), type_string)
+            self.connection.execute("CREATE TABLE {name} ({t_string})".format(name=name,
+                                                                              t_string=type_string))
 
         def _insert_row(self, table_name: str, values: tuple):
             """
@@ -99,7 +102,7 @@ class DataBaseManager:
             self.connection.execute("INSERT INTO '{tablename}' VALUES (?)".format(tablename=table_name),
                                     (value_string,))
 
-        def _select_rows(self, table_name: str, connector: str, condition=None) -> list[tuple]:
+        def _select_rows(self, table_name: str, connector: str, condition=None) -> list:
             """
             Return the rows from the specified table and filters them by the specified conditions.
                 Supports 'AND' and 'OR'
@@ -124,13 +127,13 @@ class DataBaseManager:
 
             condition_string: str = ""
             for k, v in condition.items():
-                condition_string += f" {k} {v} {connector}"
+                condition_string += f" {k}='{v}' {connector}"
             if len(condition) > 0:
                 condition_string = condition_string[:-len(connector)]
                 condition_string = f" WHERE {condition_string}"
 
-            return self.connection.execute("SELECT * FROM '{tablename}' ?".format(tablename=table_name),
-                                           (condition_string,)).fetchall()  # table name cant be parameterized
+            return self.connection.execute("SELECT * FROM '{tablename}' {cond_str}".
+                                           format(tablename=table_name, cond_str=condition_string)).fetchall()
 
         def _update_row(self, table_name: str, connector: str, values: dict, condition=None):
             """
@@ -162,19 +165,19 @@ class DataBaseManager:
 
             condition_string: str = ""
             for k, v in condition.items():
-                condition_string += f" {k} {v} {connector}"
+                condition_string += f" {k}='{v}' {connector}"
             if len(condition_string) > 0:
                 condition_string = condition_string[:-len(connector)]
-                condition_string = f" WHERE {condition_string}"
 
             value_string: str = ""
             for k, v in values.items():
-                value_string += f" {k}={v},"
+                value_string += f" {k}='{v}',"
 
             value_string = value_string[:-1]
 
-            self.connection.execute("UPDATE '{table_name}' SET (?) WHERE ?".format(table_name=table_name),
-                                    (value_string, condition_string))
+            self.connection.execute("UPDATE '{table_name}' SET {val_str} WHERE {cond_str}"
+                                    .format(table_name=table_name, val_str=value_string,
+                                            cond_str=condition_string))
 
         def _delete_row(self, table_name: str, connector: str, condition=None):
             """
